@@ -4,8 +4,8 @@ from sklearn.utils.validation import check_is_fitted
 
 class BaseEstimatorUFS(BaseEstimator, TransformerMixin):
     
-    def __init__(self, n_features_out=None):
-        self.n_features_out = n_features_out
+    def __init__(self, nFeaturesOut=None):
+        self.n_features_out = nFeaturesOut
 
     def fit(self,X,y=None):
         X = self._check_X(X)
