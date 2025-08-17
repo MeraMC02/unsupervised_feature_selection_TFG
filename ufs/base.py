@@ -11,9 +11,10 @@ class BaseEstimatorUFS(BaseEstimator, TransformerMixin):
         X = self._check_X(X)
         self._core(X)
         self.selected_index = self._order()
+        return self
 
     def transform(self,X):
-        check_is_fitted(self, "selected_idx_")
+        check_is_fitted(self, "selected_index_")
         X = self._check_X(X)
         return X[:, self.selected_index]
 
@@ -21,7 +22,7 @@ class BaseEstimatorUFS(BaseEstimator, TransformerMixin):
         raise NotImplementedError
     
     def _order(self):
-        k = self.n_features_out or len(self.scores_)
+        k = self.nFeaturesOut or len(self.scores_)
         return np.argsort(self.scores_)[::-1][:k]
 
     @staticmethod

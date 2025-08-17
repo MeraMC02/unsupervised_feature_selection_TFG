@@ -2,13 +2,12 @@ import numpy as np
 from scipy import sparse
 from scipy.linalg import eigh
 from sklearn.utils import check_random_state
-from sklearn.utils.extmath import row_norms
 from .base import BaseEstimatorUFS 
 from .utils.knn import affinityGraph, knn, laplacian
 
 class ndfs(BaseEstimatorUFS):
 
-    def __init__(self, nFeaturesOut=None, nClusters=2, k=5, alpha=1.0, beta=1.0, gamma=100.0,maxIter=30,tol=1e-4,random_state=None):
+    def __init__(self, nFeaturesOut=None, nClusters=2, k=5, alpha=1.0, beta=1.0, gamma=1e8,maxIter=30,tol=1e-4,random_state=None):
         super().__init__(nFeaturesOut)
         self.nClusters=nClusters
         self.k=k
@@ -25,7 +24,7 @@ class ndfs(BaseEstimatorUFS):
 
         Nk = knn(X,self.k)
         S = affinityGraph(Nk,X)
-        L = laplacian(S)
+        L = laplacian(S, normalized=True)
 
         vals, vecs = eigh(L.toarray(), subset_by_index=[0, self.nClusters-1])
         F = np.maximum(vecs, 0)

@@ -24,7 +24,7 @@ def affinityGraph(Nk,X,sigma=None,sym_mode="average"):
     else:
         sigma2 = float(sigma)**2 + 1e-12
 
-    weights = np.exp(-distance/(2*sigma**2))
+    weights = np.exp(-distance/(2*sigma2**2))
     S = sparse.csr_matrix((weights, (coo.row, coo.col)), shape=Nk.shape)
     return symmetrize(S,mode=sym_mode)
 
@@ -53,7 +53,16 @@ def adaptiveAffinityGraph(Z, k, lambdaVal, eps):
     return S, gamma
 
 
-def laplacian(S):
+def laplacian(S, normalized=False):
     d = np.asarray(S.sum(axis=1)).ravel()
-    D = sparse.diags(d)
-    return D - S
+
+    if not normalized:
+        D = sparse.diags(d)
+        return D - S
+
+    d_mhalf = np.zeros_like(d, dtype=float)
+    mask = d > 0
+    d_mhalf[mask] = 1.0 / np.sqrt(d[mask])
+    D_mhalf = sparse.diags(d_mhalf)
+    L = sparse.identity(S.shape[0], format='csr') - (D_mhalf @ S @ D_mhalf)
+    return L
