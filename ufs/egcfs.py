@@ -30,7 +30,8 @@ class egcfs(BaseEstimatorUFS):
         W  = np.zeros((nFeatures, self.nFeaturesOut), dtype=float)
 
         G = np.random.randint(0, 2, size=(nSamples, self.nClusters))
-        A = np.linalg.matrix_power(G.T@G, -0.5) #Potencia de matriz
+        sizes = np.maximum(G.sum(axis=0), 1) #Potencia de matriz
+        A = np.diag(1.0 / np.sqrt(sizes)) #Posible al ser una matriz diagonal
         U = G @ A
 
         gamma = 0.0
@@ -41,7 +42,8 @@ class egcfs(BaseEstimatorUFS):
         noNull = 1e-12
 
         for _ in range(self.maxIter):
-            AUX = L - (self.lambdaArg * (U @ U.T))
+            UUt = sparse.csr_matrix(U @ U.T)
+            AUX = L - (self.lambdaArg * (UUt))
             M = (X.T @ AUX @ X) + self.alpha * D
             M = symmetrize(M)
             vals, vecs = eigh(M.toarray(), subset_by_index=[0, self.nFeaturesOut-1])
