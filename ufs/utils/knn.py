@@ -49,16 +49,17 @@ def adaptiveAffinityGraph(Z, k, lambdaVal, eps):
     S = sparse.csr_matrix((data, (rows, cols)), shape=(n, n))
     S = symmetrize(S)
 
-    gamma = float(np.mean((k*dk1[:,0] - dsum[:,0])/(2.0*lambda_val)))
+    gamma = float(np.mean((k*dk1[:,0] - dsum[:,0])/(2.0*lambdaVal)))
     return S, gamma
 
 
-def laplacian(S, normalized=False):
+def laplacian(S,normalized=False, return_degree=False):
     d = np.asarray(S.sum(axis=1)).ravel()
 
     if not normalized:
         D = sparse.diags(d)
-        return D - S
+        L = D - S
+        return(L,D) if return_degree else L
 
     d_mhalf = np.zeros_like(d, dtype=float)
     mask = d > 0
@@ -66,3 +67,22 @@ def laplacian(S, normalized=False):
     D_mhalf = sparse.diags(d_mhalf)
     L = sparse.identity(S.shape[0], format='csr') - (D_mhalf @ S @ D_mhalf)
     return L
+
+def pairwise_sq_distances(A):
+    sq = np.sum(A*A, axis=1, keepdims=True) # Calculamos la norma euclídea de las filas
+    D = sq + sq.T - 2.0 * (A@A.T) # ||a_i - a_j||^2 = ||a_i||^2 + ||a_j||^2 - 2 a_i a_j
+    np.maximum(D, 0.0, out=D) # Corregimos posibles fallos de redondeos negativos
+    return D
+
+def softmax(M, noNull):
+    M -= M.max(axis=1, keepdims=True) #Aseguramos que no haya números grandes para que no se de un desborde
+    np.exp(M, out=M) #Hacemos la exponencial 
+    M /= (M.sum(axis=1, keepdims=True) + noNull) #Dividimos entre la suma de las exponenciales
+    return M
+
+def randomOrth(n,c,rng):
+    Aux = rng.standard_normal((n, c))
+    Y_p, _ = np.linalg.qr(Aux)            # columnas ortonormales
+    Y_p = Y_p[:, :c]
+
+    return Y_p
