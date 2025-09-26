@@ -1,6 +1,6 @@
 import numpy as np
 from scipy import sparse
-from sklearn.neighbors import NearestNeighbors, kneighbors_graph, NearestNeighbors
+from sklearn.neighbors import NearestNeighbors, kneighbors_graph
 
 def knn(X,k):
     Nk = kneighbors_graph(X,n_neighbors=k,mode="connectivity",include_self=False)
@@ -24,7 +24,7 @@ def affinityGraph(Nk,X,sigma=None,sym_mode="average"):
     else:
         sigma2 = float(sigma)**2 + 1e-12
 
-    weights = np.exp(-distance/(2*sigma2**2))
+    weights = np.exp(-distance/(2*sigma2))
     S = sparse.csr_matrix((weights, (coo.row, coo.col)), shape=Nk.shape)
     return symmetrize(S,mode=sym_mode)
 

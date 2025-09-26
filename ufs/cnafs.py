@@ -1,11 +1,8 @@
 import numpy as np
-from numpy.random import normal
 from scipy import sparse
-from scipy.linalg import eigh
 from sklearn.utils import check_random_state
-from sklearn.utils.extmath import row_norms
 from .base import BaseEstimatorUFS 
-from .utils.knn import affinityGraph, knn, laplacian, symmetrize, adaptiveAffinityGraph, pairwise_sq_distances, softmax, randomOrth
+from .utils.knn import laplacian, symmetrize, pairwise_sq_distances, softmax, randomOrth
 
 class cnafs(BaseEstimatorUFS):
     
@@ -70,7 +67,6 @@ class cnafs(BaseEstimatorUFS):
         Q= np.ones((self.k,self.k)) - np.identity(self.k)
 
         lastScore = np.inf
-        rowNorm = None
 
         noNull = 1e-12
 
@@ -121,16 +117,4 @@ class cnafs(BaseEstimatorUFS):
 
             lastScore = objFunction
 
-        self.scores_ = rowNorm
-
-
-
-            
-
-
-
-
-
-
-
-
+        self.scores_ = np.linalg.norm(W,axis=1)

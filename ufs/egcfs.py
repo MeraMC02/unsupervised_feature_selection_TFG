@@ -2,7 +2,6 @@ import numpy as np
 from scipy import sparse
 from scipy.linalg import eigh
 from sklearn.utils import check_random_state
-from sklearn.utils.extmath import row_norms
 from .base import BaseEstimatorUFS 
 from .utils.knn import affinityGraph, knn, laplacian, symmetrize, adaptiveAffinityGraph
 
@@ -36,7 +35,7 @@ class egcfs(BaseEstimatorUFS):
 
         gamma = 0.0
 
-        lastScore = np.inf
+        lastScore = 1e300
         rowNorm = None
 
         noNull = 1e-12
@@ -46,7 +45,7 @@ class egcfs(BaseEstimatorUFS):
             AUX = L - (self.lambdaArg * (UUt))
             M = (X.T @ AUX @ X) + self.alpha * D
             M = symmetrize(M)
-            vals, vecs = eigh(M.toarray(), subset_by_index=[0, self.nFeaturesOut-1])
+            _, vecs = eigh(M.toarray(), subset_by_index=[0, self.nFeaturesOut-1])
             W = vecs
 
             rowNorm = np.linalg.norm(W,axis=1)
@@ -57,7 +56,7 @@ class egcfs(BaseEstimatorUFS):
             Mu = X @ W @ W.T @ X.T
             Mu = symmetrize(Mu)
 
-            vals, vecs = eigh(Mu.toarray(), subset_by_index=[Mu.shape[0] - self.nClusters,Mu.shape[0]-1])
+            _, vecs = eigh(Mu.toarray(), subset_by_index=[Mu.shape[0] - self.nClusters,Mu.shape[0]-1])
             U = vecs
             
             Z = X @ W
@@ -81,14 +80,3 @@ class egcfs(BaseEstimatorUFS):
             lastScore = objFunction
 
         self.scores_ = rowNorm
-
-
-
-
-
-
-
-
-
-
-

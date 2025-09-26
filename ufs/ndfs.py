@@ -1,5 +1,4 @@
 import numpy as np
-from scipy import sparse
 from scipy.linalg import eigh
 from sklearn.utils import check_random_state
 from .base import BaseEstimatorUFS 
@@ -33,7 +32,7 @@ class ndfs(BaseEstimatorUFS):
         D = np.identity(nFeatures)
         W  = np.zeros((nFeatures, self.nClusters), dtype=float)
 
-        lastScore = np.inf
+        lastScore = 1e300
         rowNorm = None
 
         noNull = 1e-12
@@ -63,8 +62,3 @@ class ndfs(BaseEstimatorUFS):
             lastScore = objFunction
 
         self.scores_ = rowNorm
-
-
-
-
-

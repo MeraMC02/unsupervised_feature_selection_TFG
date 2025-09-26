@@ -14,7 +14,7 @@ class BaseEstimatorUFS(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self,X):
-        check_is_fitted(self, "selected_index_")
+        check_is_fitted(self, "selected_index")
         X = self._check_X(X)
         return X[:, self.selected_index]
 
@@ -33,7 +33,3 @@ class BaseEstimatorUFS(BaseEstimator, TransformerMixin):
             raise ValueError("X debe ser 2-D con formato (n_samples, n_features)")
         
         return X
-
-
-
-
