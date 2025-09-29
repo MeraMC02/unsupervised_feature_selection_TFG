@@ -1,11 +1,8 @@
-import random
-from tkinter import W
 import numpy as np
-from scipy import sparse
 from scipy.linalg import eigh
 from sklearn.utils import check_random_state
 from .base import BaseEstimatorUFS 
-from .utils.knn import adaptiveAffinityGraph, laplacian, symmetrize, pairwise_sq_distances, softmax, randomOrth
+from .utils.knn import adaptiveAffinityGraph, laplacian, symmetrize, randomOrth
 
 
 class rsogfs(BaseEstimatorUFS):
@@ -49,7 +46,7 @@ class rsogfs(BaseEstimatorUFS):
             Atil = symmetrize(Atil) #Ya es simétrica pero evitamos error de cómputo
 
             U = np.zeros((nFeatures,self.nFeaturesOut), dtype=float)
-            U[I,np.arrange(self.nFeaturesOut)] = 1.0
+            U[I,np.arange(self.nFeaturesOut)] = 1.0
 
             _, vecs = eigh(Atil, subset_by_index=[Atil.shape[0] - self.nClusters,Atil.shape[0]-1])
             V = vecs

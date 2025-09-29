@@ -45,7 +45,7 @@ class egcfs(BaseEstimatorUFS):
             AUX = L - (self.lambdaArg * (UUt))
             M = (X.T @ AUX @ X) + self.alpha * D
             M = symmetrize(M)
-            _, vecs = eigh(M.toarray(), subset_by_index=[0, self.nFeaturesOut-1])
+            _, vecs = eigh(M, subset_by_index=[0, self.nFeaturesOut-1])
             W = vecs
 
             rowNorm = np.linalg.norm(W,axis=1)
