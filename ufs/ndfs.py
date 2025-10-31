@@ -39,7 +39,7 @@ class ndfs(BaseEstimatorUFS):
 
         for _ in range(self.maxIter):
             A_inv = np.linalg.inv(X.T @ X + self.beta * D)
-            M = L + self.alpha * (np.identity(nSamples) - X @ A_inv @ X.T)
+            M = L.toarray() + self.alpha * (np.identity(nSamples) - X @ A_inv @ X.T)
 
             num = self.gamma * F
             denom = M @ F + self.gamma * (F @ F.T @ F) 

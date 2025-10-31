@@ -56,7 +56,7 @@ class egcfs(BaseEstimatorUFS):
             Mu = X @ W @ W.T @ X.T
             Mu = symmetrize(Mu)
 
-            _, vecs = eigh(Mu.toarray(), subset_by_index=[Mu.shape[0] - self.nClusters,Mu.shape[0]-1])
+            _, vecs = eigh(Mu, subset_by_index=[Mu.shape[0] - self.nClusters,Mu.shape[0]-1])
             U = vecs
             
             Z = X @ W
@@ -70,7 +70,7 @@ class egcfs(BaseEstimatorUFS):
 
             obj3 = self.lambdaArg * (np.linalg.norm(Z.T @ U, 'fro') ** 2)
 
-            obj4 = gamma * np.sum(S * S)
+            obj4 = gamma * np.sum(S.multiply(S).sum())
 
             objFunction = obj1 + obj2 - obj3 + obj4
 
