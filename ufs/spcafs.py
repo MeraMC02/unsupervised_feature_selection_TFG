@@ -38,7 +38,7 @@ class spcafs(BaseEstimatorUFS):
             d = (self.p/2.0)*(rowNorm*rowNorm+self.noNull)**((self.p-2)/2.0)
             G = np.diag(d)
 
-            obj1 = np.linalg.trace(W.T@S@W)
+            obj1 = np.trace(W.T@S@W)
             obj2 = self.gamma*np.sum(rowNorm**self.p)
 
             objFunction = -obj1 + obj2

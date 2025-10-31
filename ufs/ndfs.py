@@ -43,8 +43,8 @@ class ndfs(BaseEstimatorUFS):
 
             num = self.gamma * F
             denom = M @ F + self.gamma * (F @ F.T @ F) 
-            F = F * (num/(denom+noNull))
-            F /= np.linalg.norm(F,axis=0)
+            F = np.asarray(F) * (np.asarray(num) / (np.asarray(denom) + noNull))
+            F /= (np.linalg.norm(F,axis=0) + noNull)
 
             W = A_inv @ X.T @ F
 

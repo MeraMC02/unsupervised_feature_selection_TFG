@@ -70,7 +70,7 @@ class egcfs(BaseEstimatorUFS):
 
             obj3 = self.lambdaArg * (np.linalg.norm(Z.T @ U, 'fro') ** 2)
 
-            obj4 = gamma * np.sum(S.multiply(S).sum())
+            obj4 = gamma * float(S.multiply(S).sum())
 
             objFunction = obj1 + obj2 - obj3 + obj4
 
