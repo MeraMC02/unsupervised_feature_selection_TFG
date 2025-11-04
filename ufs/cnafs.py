@@ -6,7 +6,7 @@ from .utils.knn import laplacian, symmetrize, pairwise_sq_distances, softmax, ra
 
 class cnafs(BaseEstimatorUFS):
     
-    def __init__(self, nFeaturesOut=None, alpha=1.0, beta=100.0, gamma=100.0, lambdaArg=100.0, epsilon=1.0, nClusters=2, k=5, maxIter=30,tol=1e-4,random_state=None):
+    def __init__(self, nFeaturesOut=None, alpha=1.0, beta=100.0, gamma=100.0, lambdaArg=100.0, epsilon=1.0, nClusters=2, k=5, maxIter=100,tol=1e-4,random_state=None):
         super().__init__(nFeaturesOut)
         self.alpha = alpha
         self.beta = beta
@@ -24,11 +24,10 @@ class cnafs(BaseEstimatorUFS):
         Df = pairwise_sq_distances(Y_p)
         Dv = pairwise_sq_distances(V.T)
 
-        logits = -(alpha*Df + gamma*Dv) / (2*beta)
+        logits = -(alpha*Df + 0.5*gamma*Dv) / (2.0*alpha*beta)
 
-        S = softmax(logits,noNull)
+        S = softmax(logits.copy(),noNull)
         S = symmetrize(S)
-
         return sparse.csr_matrix(S)
 
     @staticmethod
@@ -66,7 +65,7 @@ class cnafs(BaseEstimatorUFS):
 
         Q= np.ones((self.k,self.k)) - np.identity(self.k)
 
-        lastScore = np.inf
+        lastScore = 1e300
 
         noNull = 1e-12
 
@@ -80,7 +79,7 @@ class cnafs(BaseEstimatorUFS):
             W = np.linalg.solve(A, X.T @ C_n @ Y_p) #Más eficiente que calcular la inversa
 
             # Cálculo de la matriz Yp
-            A = C_n + self.alpha*L.toarray()
+            A = C_n + 2.0*self.alpha*L.toarray()
             B = C_n @ X @ W
             Y_p = self._gpi(A, B, rng)
 
@@ -100,13 +99,16 @@ class cnafs(BaseEstimatorUFS):
 
             np.divide(numV, denV + noNull, out=numV)
             V *= numV
+            den = np.linalg.norm(V, axis=0)
+            den = np.where(den > noNull, den, 1.0)
+            V /= den
 
             # Comprobación de la convergencia y criterio de parada
             obj1 = np.linalg.norm(X.T - X.T@G@V, 'fro')**2
             obj2 = np.linalg.norm(C_n@(X@W-Y_p), 'fro')**2
             obj3 = self.lambdaArg * np.dot(d_w, np.sum(W*W,axis=1)) 
-            obj4 = self.alpha * np.trace(Y_p.T@L@Y_p)
-            obj5 = self.beta * np.sum(S.data * np.log(S.data+noNull))
+            obj4 = 2 * self.alpha * np.trace(Y_p.T@L@Y_p)
+            obj5 = 2 * self.alpha * self.beta * np.sum(S.data * np.log(S.data+noNull))
             obj6 = self.gamma * np.trace(V@L@V.T)
             obj7 = self.epsilon * np.trace(V.T@Q@V)
 

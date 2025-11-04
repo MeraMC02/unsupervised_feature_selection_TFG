@@ -1,6 +1,8 @@
 import numpy as np
 from scipy.linalg import eigh
 from sklearn.utils import check_random_state
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
 from .base import BaseEstimatorUFS 
 from .utils.knn import adaptiveAffinityGraph, laplacian, symmetrize, randomOrth
 
@@ -20,7 +22,10 @@ class rsogfs(BaseEstimatorUFS):
         rng = check_random_state(self.random_state)
         noNull = 1e-12
 
-        W = randomOrth(nFeatures,self.nClusters,rng)
+        pca = PCA(n_components=self.nClusters, random_state=self.random_state).fit(X)
+        W0 = pca.components_.T     ## 
+        U,_,Vt = np.linalg.svd(W0, full_matrices=False)                                         ## Mayor estabilidad que random
+        W = U @ Vt                                                                              ## 
 
         S, _ = adaptiveAffinityGraph(X,self.k,1.0,noNull)
         L = laplacian(S)
@@ -28,13 +33,15 @@ class rsogfs(BaseEstimatorUFS):
         lastScore = 1e300
         for _ in range(self.maxIter):
             Aux = (X.T @ (L @ X))
+            Aux = symmetrize(Aux)
             lambdaArg = np.linalg.eigvalsh(Aux).max()
             A = lambdaArg*np.identity(nFeatures) - Aux
             A = symmetrize(A)
 
             AW = A @ W
             M = W.T @ AW
-            Minv = np.linalg.pinv(M + 1e-9 * np.identity(self.nClusters))       # Moore–Penrose estable
+            tau = 1e-4 * np.trace(M) / M.shape[0]    # escala-invariante
+            Minv = np.linalg.pinv(M + tau * np.identity(self.nClusters))       # Moore–Penrose estable
             T = AW @ Minv                                      
             diagP = np.sum(T * AW, axis=1) 
 
@@ -54,6 +61,7 @@ class rsogfs(BaseEstimatorUFS):
             W = U @ V
 
             Z = X @ W
+            Z = StandardScaler().fit_transform(Z) #Estandarizamos porque puede mejorar el algoritmo
             S, gamma = adaptiveAffinityGraph(Z,self.k,1.0,noNull)
             L = laplacian(S)
 

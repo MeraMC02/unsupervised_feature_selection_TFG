@@ -20,6 +20,7 @@ class ndfs(BaseEstimatorUFS):
     def _core(self,X):
         nSamples, nFeatures = X.shape
         rng = check_random_state(self.random_state)
+        noNull = 1e-12
 
         Nk = knn(X,self.k)
         S = affinityGraph(Nk,X)
@@ -27,15 +28,15 @@ class ndfs(BaseEstimatorUFS):
 
         vals, vecs = eigh(L.toarray(), subset_by_index=[0, self.nClusters-1])
         F = np.maximum(vecs, 0)
-        F /= np.linalg.norm(F, axis=0)
+        den = np.linalg.norm(F, axis=0)
+        den = np.where(den > noNull, den, 1.0)
+        F /= den
 
         D = np.identity(nFeatures)
         W  = np.zeros((nFeatures, self.nClusters), dtype=float)
 
         lastScore = 1e300
         rowNorm = None
-
-        noNull = 1e-12
 
         for _ in range(self.maxIter):
             A_inv = np.linalg.inv(X.T @ X + self.beta * D)
@@ -44,7 +45,9 @@ class ndfs(BaseEstimatorUFS):
             num = self.gamma * F
             denom = M @ F + self.gamma * (F @ F.T @ F) 
             F = np.asarray(F) * (np.asarray(num) / (np.asarray(denom) + noNull))
-            F /= (np.linalg.norm(F,axis=0) + noNull)
+            den = np.linalg.norm(F, axis=0)
+            den = np.where(den > noNull, den, 1.0)
+            F /= den
 
             W = A_inv @ X.T @ F
 
