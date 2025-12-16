@@ -23,7 +23,7 @@ class rsogfs(BaseEstimatorUFS):
         noNull = 1e-12
 
         pca = PCA(n_components=self.nClusters, random_state=self.random_state).fit(X)
-        W0 = pca.components_.T     ## 
+        W0 = pca.components_.T      
         U,_,Vt = np.linalg.svd(W0, full_matrices=False)                                         ## Mayor estabilidad que random
         W = U @ Vt                                                                              ## 
 
@@ -40,8 +40,9 @@ class rsogfs(BaseEstimatorUFS):
 
             AW = A @ W
             M = W.T @ AW
-            tau = 1e-4 * np.trace(M) / M.shape[0]    # escala-invariante
-            Minv = np.linalg.pinv(M + tau * np.identity(self.nClusters))       # Moore–Penrose estable
+            r = M.shape[0]
+            tau = 1e-4 * np.trace(M) / r    # escala-invariante
+            Minv = np.linalg.pinv(M + tau * np.identity(r))       # Moore–Penrose estable
             T = AW @ Minv                                      
             diagP = np.sum(T * AW, axis=1) 
 
@@ -55,8 +56,9 @@ class rsogfs(BaseEstimatorUFS):
             U = np.zeros((nFeatures,self.nFeaturesOut), dtype=float)
             U[I,np.arange(self.nFeaturesOut)] = 1.0
 
-            _, vecs = eigh(Atil, subset_by_index=[Atil.shape[0] - self.nClusters,Atil.shape[0]-1])
-            V = vecs
+            eigvals, eigvecs = eigh(Atil)
+            m = min(self.nClusters, Atil.shape[0])
+            V = eigvecs[:, -m:]
 
             W = U @ V
 
